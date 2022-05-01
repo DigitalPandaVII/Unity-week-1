@@ -1,0 +1,70 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class PlayerController : MonoBehaviour
+{
+
+    public float speed; 
+    public float jumpForce;
+    public float bounceForce;
+    public bool isGrounded = true;
+
+    Rigidbody2D body;
+    public GameObject gameManager;
+    public GameObject gold;
+
+    [HideInInspector]
+    public GameManager gameManagerScript;
+
+    // Start is called before the first frame update
+    void Awake()
+    {
+        body = GetComponent<Rigidbody2D>();
+        gameManagerScript = gameManager.GetComponent<GameManager>();
+        bounceForce = 1.3f * jumpForce;
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if(!gameManagerScript.gameOver)
+        {
+            playerMove();
+        } 
+    }
+    
+    void playerMove()
+    {
+        if(!gameManagerScript.gameOver)
+        {
+            transform.Translate(Vector2.right * speed * Time.deltaTime);
+        }
+        
+        if(Input.GetKeyDown(KeyCode.Space) && isGrounded)
+        {
+            body.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+            isGrounded = false;
+            Debug.Log("jump");
+        }
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if(collision.gameObject.CompareTag("Ground"))
+        {
+            isGrounded = true;
+        } else if(collision.gameObject.CompareTag("Obstacle"))
+        {
+            gameManagerScript.GameOver();
+        } else if(collision.gameObject.CompareTag("Gold"))
+        {
+            Destroy(collision.gameObject);
+            gameManagerScript.AddGold();
+        } else if(collision.gameObject.CompareTag("Bounce"))
+        {
+            body.AddForce(Vector2.up * bounceForce, ForceMode2D.Impulse);
+        }
+        
+    }
+}
